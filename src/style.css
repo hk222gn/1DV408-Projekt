@@ -1,0 +1,88 @@
+#test
+{
+	color:#00FFFF;
+}
+
+#container
+{
+	margin: auto;
+	width: 800px;
+
+}
+
+#feedbackBox
+{
+	width: 400px;
+	height: 120px;
+	border: 1px solid black;
+	float: left;
+	display: block;
+	background-color: #000000;
+	color: #44FF44;
+}
+
+#feedbackBox p
+{
+	margin: 0px;
+	padding: 0px;
+	padding-left: 3px;
+	padding-top: 1px;
+	font-size: 13px;
+}
+
+#actionBox
+{
+	border: 1px solid black;
+	float: left;
+	width: 400px;
+	height: 120px;
+	margin-top: -122px;
+}
+
+#actionBox h4
+{
+	margin: 0px;
+	padding: 0px;
+	padding-left: 3px;
+	padding-top: 1px;
+}
+
+#actionBox p
+{
+	margin: 0px;
+	padding: 0px;
+	padding-left: 3px;
+	padding-top: 1px;
+	font-size: 13px;
+}
+
+#playerStatsAndShop
+{
+	margin-left: -1px;
+	border: 1px solid black;
+	width: 350px;
+	height: 241px;
+	float: left;
+}
+
+#playerStatsAndShop h4
+{
+	margin: 0px;
+	padding: 0px;
+	padding-left: 3px;
+	padding-top: 1px;
+}
+
+#playerStatsAndShop p
+{
+	margin: 0px;
+	padding: 0px;
+	padding-left: 3px;
+	padding-top: 1px;
+	font-size: 13px;
+}
+
+#footer
+{
+	float: left;
+}
