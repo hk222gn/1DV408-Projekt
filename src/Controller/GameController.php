@@ -37,9 +37,9 @@ class GameController
 			else
 				return $this->gameView->GenerateCharacterCreationHTML();
 		}
-		
-		
 
-		return $this->gameView->GenerateGameHTML(); //Add $gameModel->CreateMap() as attribute
+		$char = $this->gameModel->GetCharacter($this->gameModel->GetUserEntry($username));
+		
+		return $this->gameView->GenerateGameHTML($char->GetName(), $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold());
 	}
 }

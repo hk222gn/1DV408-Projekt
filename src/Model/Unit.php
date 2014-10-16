@@ -2,21 +2,27 @@
 
 class Unit
 {
-	private $name = "";
-	private $health = 25;
-	private $attack = 0;
-	private $defense = 0;
+	public $name = "";
+	public $maxHealth;
+	public $currentHealth;
+	public $attack;
+	public $defense;
 
-	private $level = 1;
+	public $level;
 
 	public function GetName()
 	{
 		return $this->name;
 	}
 
-	public function GetHealth()
+	public function GetMaxHealth()
 	{
-		return $this->health;
+		return $this->maxHealth;
+	}
+
+	public function GetCurrentHealth()
+	{
+		return $this->currentHealth;
 	}
 
 	public function TakeDamage($damage)

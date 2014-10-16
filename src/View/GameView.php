@@ -17,7 +17,7 @@ class GameView
 	public function AddTextToLog($input)
 	{
 		if (!isset($_SESSION[self::$logSession]) || count($_SESSION[self::$logSession]) == 0)
-			$_SESSION[self::$logSession] = Array();
+			$_SESSION[self::$logSession] = array();
 
 		array_push($_SESSION[self::$logSession], $input);
 
@@ -59,7 +59,7 @@ class GameView
 		return $HTML;
 	}
 	
-	public function GenerateGameHTML()
+	public function GenerateGameHTML($name, $maxHealth, $currentHealth, $attack, $defense, $gold)
 	{
 		$log = $this->RenderLog();
 
@@ -69,12 +69,13 @@ class GameView
 				</div>
 				<div id = 'playerStatsAndShop'>
 					<h4>Character information.</h4>
-					<p>Name: </p>
-					<p>Health:</p>
-					<p>Attack:</p>
-					<p>Defense:</p>
+					<p>Name: $name</p>
+					<p>Health: $currentHealth/$maxHealth</p>
+					<p>Attack: $attack</p>
+					<p>Defense: $defense</p>
 					<br />
 					<h4>Shop.</h4>
+					<p>Current gold: $gold</p>
 					<p>Weapon: Copper Sword, <a href='#'>Upgrade for 50g!</a></p>
 					<p>Armor: &nbsp;&nbsp;&nbsp;Platinum armor, &nbspMax upgrade!</p>
 					<p><a href='#'>Buy potion 5g!</a></p>

@@ -2,9 +2,10 @@
 
 class CharacterRepository extends Repository
 {
-	private static $userID = "UserID"; //<- Is just a unique identifier in the DB, nothing else.
+	private static $userID = "UserID"; //<- Primary key, taken from Users Entry
 	private static $name = "Name";
-	private static $health = "Health";
+	private static $maxHealth = "MaxHealth";
+	private static $currentHealth = "CurrentHealth";
 	private static $attack = "Attack";
 	private static $defense = "Defense";
 	private static $level = "Level";
@@ -22,12 +23,12 @@ class CharacterRepository extends Repository
 		{
 			$DB = $this->connection();
 
-			var_dump($char->GetName()); // Fel? Står att getname blir null, kan inte fatta varför, är som att den inte kan returnera rätt värde.
+			var_dump($userID, $char->GetName(), $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetLevel(), $char->GetExp(), $char->GetGold());
 
-			$sql = "INSERT INTO $this->DBTable (" . self::$userID . ", " . self::$name . ", " . self::$health . ", " . self::$attack . ", " . self::$defense 
-				   . ", " . self::$level . ", " . self::$exp . ", " . self::$gold . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			$sql = "INSERT INTO $this->DBTable (" . self::$userID . ", " . self::$name . ", " . self::$maxHealth . ", " . self::$currentHealth . ", " . self::$attack . ", " . self::$defense 
+				   . ", " . self::$level . ", " . self::$exp . ", " . self::$gold . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-			$params = array($userID, $char->GetName(), $char->GetHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetLevel(), $char->GetExp(), $char->GetGold());
+			$params = array($userID, $char->GetName(), $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetLevel(), $char->GetExp(), $char->GetGold());
 
 			$query = $DB->prepare($sql);
 			$query->execute($params);
@@ -54,7 +55,7 @@ class CharacterRepository extends Repository
 
 			if ($result)
 			{
-				$character = new Character($result[self::$userID], $result[self::$name], $result[self::$health], $result[self::$attack], 
+				$character = new Character($result[self::$name], $result[self::$maxHealth], $result[self::$currentHealth], $result[self::$attack], 
 										   $result[self::$defense], $result[self::$level], $result[self::$exp], $result[self::$gold]);
 
 				return $character;

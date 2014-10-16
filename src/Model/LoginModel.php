@@ -59,6 +59,8 @@ class LoginModel
 		{
 			unset($_SESSION[self::$usernameSession]);
 
+			session_destroy();
+
 			return "Du har nu loggats ut";
 		}
 		return "Utloggningen har misslyckats.";

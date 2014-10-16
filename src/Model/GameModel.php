@@ -19,6 +19,15 @@ class GameModel
 		return $entry = $this->userRepository->GetUserEntryByName($username);
 	}
 
+	public function GetCharacter($entry)
+	{
+		$character = $this->characterRepository->GetCharacterByUserID($entry);
+
+		if ($character != NULL)
+			return $character;
+		return NULL;
+	}
+
 	public function CheckForExistingCharacter($entry)
 	{
 		if ($this->characterRepository->GetCharacterByUserID($entry))
@@ -33,7 +42,7 @@ class GameModel
 			return "Karaktärens namn innehåller ogiltiga tecken!";
 		}
 
-		$char = new Character($characterName);//TODO: Make it so when a character is made, it's also saved to the DB, to avoid mistakes with different standard values.
+		$char = new Character($characterName);
 
 		$this->characterRepository->AddCharacter($char, $entry);
 	}
