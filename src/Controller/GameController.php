@@ -3,6 +3,8 @@
 require_once("model/GameModel.php");
 //require_once("model/LoginModel.php");
 require_once("view/GameView.php");
+require_once("model/AttackTypes.php");
+require_once("model/HealthPotion.php");
 
 class GameController
 {
@@ -17,7 +19,8 @@ class GameController
 
 	public function HandleGame($username)
 	{
-		$character = $this->gameModel->CheckForExistingCharacter($this->gameModel->GetUserEntry($username));
+		$userEntry = $this->gameModel->GetUserEntry($username);
+		$character = $this->gameModel->CheckForExistingCharacter($userEntry);
 
 		//No character exists? Create one.
 		if ($character == false)
@@ -25,21 +28,67 @@ class GameController
 			//If the user tried to create a character, make one, else show the creation form again.
 			if ($this->gameView->DidUserSendCreateCharacter())
 			{
-				$feedback = $this->gameModel->CreateCharacter($this->gameView->GetCharacterNameInput(), $this->gameModel->GetUserEntry($username));
+				$feedback = $this->gameModel->CreateCharacter($this->gameView->GetCharacterNameInput(), $userEntry);
+				//If there is feedback, it means something went wrong when creating the character(Name not allowed?).
 				if ($feedback != "")
 				{
 					$this->gameView->SetFeedbackMessage($feedback);
 					return $this->gameView->GenerateCharacterCreationHTML();
 				}
-				else
-					$this->gameView->AddTextToLog("Character created! Welcome to the game!"); //TODO: For some reason this sticks even if we log out, i guess it has something to do with the session log.
 			}
 			else
 				return $this->gameView->GenerateCharacterCreationHTML();
 		}
 
-		$char = $this->gameModel->GetCharacter($this->gameModel->GetUserEntry($username));
+		//Character did exist, check if it's allready saved in the session, else save it.
+		if ($this->gameModel->GetCharacterFromSession() == NULL)
+			$this->gameModel->SaveCharToSession($this->gameModel->GetCharacterFromDB($userEntry));
+
+		$char = $this->gameModel->GetCharacterFromSession();
+
+		//Check if user wants to add stats.
+		if ($this->gameView->DidUserRequestAddStat())
+			$this->gameModel->AddStat($char, $userEntry, $this->gameView->DidUserAddHealth(), $this->gameView->DidUserAddAttack(), $this->gameView->DidUserAddDefense());
+
+		//Handle shop
+		if ($this->gameView->DidUserRequestBuy())
+			$this->gameModel->BuyItem($char, $this->gameView->DidUserBuyHealthPotion(), $this->gameView->DidUserBuyWeapon());
+
+		//Handle the entire hunting part of the game, includes levels, player death.
+		if ($this->HandleHunting($char, $userEntry))
+		{
+			$this->gameModel->CheckForPlayerLevelup($char, $userEntry);
+
+			return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), 
+				   $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack());
+		}
+		else
+			return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), 
+				   $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack(), true);
 		
-		return $this->gameView->GenerateGameHTML($char->GetName(), $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold());
+		return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), 
+			   $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack());
+	}
+
+	private function HandleHunting(Character $char, $entry)
+	{
+
+		if ($this->gameModel->IsUserHunting())
+		{
+			$userDied = $this->gameModel->CalculateCombatResults($this->gameView->GetAttackType(), $char);
+
+			if (!$userDied)
+				$this->gameModel->HandleUserDeath($entry);
+
+			return $userDied;
+		}
+
+		//Check if the user started the hunt
+		if ($this->gameView->DidUserStartHunting())
+		{
+			//Create a monster for the user to fight.
+			$this->gameModel->StartHunting($char->GetLevel());
+		}
+		return true;
 	}
 }

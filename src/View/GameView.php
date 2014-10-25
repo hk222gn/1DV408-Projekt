@@ -2,66 +2,92 @@
 
 class GameView
 {
-	private static $logSession = "textLog";
-	private static $maxLogRows = 7;
-
 	private $feedbackMessage = "";
 
-	public function DidUserStartHunting()
+	private static $addStat = "addStat";
+	private static $buyItem = "buy";
+
+	public function DidUserRequestBuy()
 	{
-		if (isset($_POST['hunt'])) // TODO; RÄTT?
+		if (isset($_GET[self::$buyItem]))
 			return true;
 		return false;
 	}
 
-	public function AddTextToLog($input)
+	public function DidUserBuyHealthPotion()
 	{
-		if (!isset($_SESSION[self::$logSession]) || count($_SESSION[self::$logSession]) == 0)
-			$_SESSION[self::$logSession] = array();
-
-		array_push($_SESSION[self::$logSession], $input);
-
-		$count = count($_SESSION[self::$logSession]);
-
-		if ($count > self::$maxLogRows)
-		{
-			$count = $count - self::$maxLogRows;
-
-			for ($i = $count; $i > 0; $i--) { 
-				unset($_SESSION[self::$logSession][$i - 1]);
-			}
-
-			$_SESSION[self::$logSession] = array_values($_SESSION[self::$logSession]);
-		}
+		if ($_GET[self::$buyItem] == "healthPotion")
+			return true;
+		return false;
 	}
 
-	public function GetLogArray()
+	public function DidUserBuyWeapon()
 	{
-		if (isset($_SESSION[self::$logSession]))
-			return $_SESSION[self::$logSession];
-		return "";
+		if ($_GET[self::$buyItem] == "weapon")
+			return true;
+		return false;
 	}
 
-	public function RenderLog()
+	public function DidUserRequestAddStat()
 	{
-		$log = $this->GetLogArray();
+		if (isset($_GET[self::$addStat]))
+			return true;
+		return false;
+	}
 
-		if ($log == "")
-			return $log;
+	public function DidUserAddHealth()
+	{
+		if ($_GET[self::$addStat] == "health")
+			return true;
+		return false;
+	}
 
-		$HTML = "";
+	public function DidUserAddAttack()
+	{
+		if ($_GET[self::$addStat] == "attack")
+			return true;
+		return false;
+	}
 
-		foreach ($log as $row)
+	public function DidUserAddDefense()
+	{
+		if ($_GET[self::$addStat] == "defense")
+			return true;
+		return false;
+	}
+
+	public function DidUserStartHunting()
+	{
+		if (isset($_GET['hunt']))
+			return true;
+		return false;
+	}
+
+	public function GetAttackType()
+	{
+		if (isset($_GET['attack']))
+			return $_GET['attack'];
+		return "EMPTY";
+	}
+
+	public function GenerateLogString($logArray)
+	{
+		if ($logArray == "")
+			return $logArray;
+
+		$logString = "";
+
+		foreach ($logArray as $row)
 		{
-			$HTML .= "<p>$row</p>\n"; //TODO: Check how it turns out with a \n.
+			$logString .= "<p>$row</p>\n";
 		}
 
-		return $HTML;
+		return $logString;
 	}
 	
-	public function GenerateGameHTML($name, $maxHealth, $currentHealth, $attack, $defense, $gold)
+	public function GenerateGameHTML($isUserHunting = false, $logArray, $name, $maxHealth, $currentHealth, $attack, $defense, $gold, $level, $exp, $statPoints, $weaponName, $weaponDamage, $playerDied = false)
 	{
-		$log = $this->RenderLog();
+		$log = $this->GenerateLogString($logArray);
 
 		$HTML = "
 				<div id = 'feedbackBox'>
@@ -70,27 +96,52 @@ class GameView
 				<div id = 'playerStatsAndShop'>
 					<h4>Character information.</h4>
 					<p>Name: $name</p>
-					<p>Health: $currentHealth/$maxHealth</p>
-					<p>Attack: $attack</p>
-					<p>Defense: $defense</p>
+					<p>Level: $level ($statPoints) stat pts</p>
+					<p>Experience: $exp/" . $level * Character::REQUIRED_EXP_MULTI . "</p>
+					<p><a href = '?addStat=health'> + </a>Health: $currentHealth/$maxHealth</p>
+					<p><a href = '?addStat=attack'> + </a>Attack: $attack</p>
+					<p><a href = '?addStat=defense'> + </a>Defense: $defense</p>
 					<br />
 					<h4>Shop.</h4>
 					<p>Current gold: $gold</p>
-					<p>Weapon: Copper Sword, <a href='#'>Upgrade for 50g!</a></p>
-					<p>Armor: &nbsp;&nbsp;&nbsp;Platinum armor, &nbspMax upgrade!</p>
-					<p><a href='#'>Buy potion 5g!</a></p>
+					<p>Weapon: $weaponName (+$weaponDamage attack), <a href='?buy=weapon'> Upgrade!</a></p>
+					<p><a href='?buy=healthPotion'>Buy potion</a> 5g (+ " . HealthPotion::HEAL_AMOUNT . " health instantly) </p>
 				</div>
 				<div id = 'actionBox'>
 					<h4>Actions</h4>
-					<p><a href = '?hunt'>Hunt in the area</a></p>
-					<p><a href = '?right'>Move right</a></p>
-					<p><a href = '?up'>Move up</a></p>
-					<p><a href = '?down'>Move down</a></p>
-					<p><a href = '?left'>Move left</a></p>
+				";
 
+		if ($isUserHunting)
+			$HTML .= $this->GetHuntingHTML();
+		else if ($playerDied)
+			$HTML .= "<p><a href = '?endGame'>End game</a></p>";
+		else
+			$HTML .= $this->GetActionHTML();
+		$HTML .=
+				"
 				</div>
 				";
 
+		return $HTML;
+	}
+
+	public function GetHuntingHTML()
+	{
+		$HTML = "
+				<p><a href = '?attack=" . AttackTypes::QUICK  . "'>" . AttackTypes::QUICK  . " attack</a></p>
+				<p><a href = '?attack=" . AttackTypes::NORMAL . "'>" . AttackTypes::NORMAL . " attack</a></p>
+				<p><a href = '?attack=" . AttackTypes::HEAVY  . "'>" . AttackTypes::HEAVY  . " attack</a></p>
+				";
+
+		return $HTML;
+	}
+
+	//If get works the way i made it look above (attack=quick means Get returns quick) change that here aswell.
+	public function GetActionHTML()
+	{
+		$HTML =	"
+				<p><a href = '?hunt'>Hunt in the area</a></p>
+				";
 		return $HTML;
 	}
 
@@ -136,11 +187,3 @@ class GameView
 		return false;
 	}
 }
-/*<p>Hunting: Wolf attacked you with 3 damage.</p>
-					<p>Hunting: You attacked the wolf with 25 damage.</p>
-					<p>Hunting: You've won the battle!</p>
-					<p>Hunting: You find 10 gold coins.</p>
-					<p>Console: You attempt to move right, but a wall was in the way.</p>
-					<p>You bash your head in the wall and die.</p>
-					<p>Max amount of lines to display is 7</p>
-					*/

@@ -27,7 +27,7 @@ class Unit
 
 	public function TakeDamage($damage)
 	{
-		$this->health = $this->health - $damage;
+		$this->currentHealth = $this->currentHealth - $damage;
 	}
 
 	public function GetAttack()
