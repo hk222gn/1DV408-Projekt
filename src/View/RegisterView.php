@@ -17,7 +17,7 @@ class RegisterView
 		//Filtrera ogiltiga tecken
 		$usernameInput = preg_replace('/[^A-Za-z0-9-_!åäöÅÄÖ]/', '', $usernameInput);
 
-		$HTML = "<h1>Laborationskod hk222gn</h1>
+		$HTML = "<h2>Laborationskod hk222gn</h2>
 				<a href='?login'>Tillbaka</a>
 				<form name='f1' method='post' action='?register'>
 					<h3>Användarnamn</h3>

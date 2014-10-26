@@ -4,5 +4,5 @@
 class HealthPotion
 {
 	const HEAL_AMOUNT 		  = 5;
-	const HEALTH_POTION_PRICE = 5;
+	const HEALTH_POTION_PRICE = 15;
 }

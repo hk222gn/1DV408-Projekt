@@ -71,14 +71,14 @@ class LoginView
 		if (!$loginStatus)
 		{
 			$nameInput = $this->GetUsernameInput();
-			$HTMLString = 	"<h1>Laborationskod hk222gn</h1>
+			$HTMLString = 	"<h2>Laborationskod hk222gn</h2>
 							<a href='?register'>Registrera ny användare</a>
 							<form name='f1' method='post' action='?login'>
 							<h3>Användarnamn</h3>
-							<input type='text' name='username' value='$nameInput'>
+							<input type='text' name='username' value='$nameInput' autofocus required>
 							<h3>Lösenord</h3>
-							<input type='password' name='password'>
-							<input type='submit' value='Logga in' name='doLogin'>
+							<input type='password' name='password' required>
+							<input type='submit' value='Logga in' name='doLogin' class ='btn btn-primary'>
 							<h3>Kom ihåg mig!</h3>
 							<input type ='checkbox' name='rememberMe' value='1'>
 							</form>";
@@ -87,7 +87,7 @@ class LoginView
 		{
 			$username = $this->model->GetUsername();
 			$HTMLString = 	"<form name='f2' method='post' action='?logout'>
-							<input type='submit' value='Logga ut' name='doLogout'>
+							<input type='submit' value='Logga ut' name='doLogout' class ='btn btn-primary margin'>
 							</form>";
 		}
 

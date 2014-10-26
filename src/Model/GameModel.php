@@ -2,6 +2,7 @@
 require_once("model/DAL/UserRepository.php");
 require_once("model/DAL/CharacterRepository.php");
 require_once("model/DAL/EnemyRepository.php");
+require_once("model/DAL/WeaponRepository.php");
 require_once("model/WeaponShop.php");
 require_once("model/Character.php");
 require_once("model/Enemy.php");
@@ -24,9 +25,10 @@ class GameModel
 	public function __construct()
 	{
 		$this->userRepository = new UserRepository();
-		$this->characterRepository = new CharacterRepository();
+		$weaponRepository = new WeaponRepository();
+		$this->characterRepository = new CharacterRepository($weaponRepository);
 		$this->enemyRepository = new EnemyRepository();
-		$this->weaponShop = new WeaponShop();
+		$this->weaponShop = new WeaponShop($weaponRepository);
 	}
 
 	public function IsUserHunting()
@@ -64,6 +66,7 @@ class GameModel
 	public function GetMonster($charLevel)
 	{
 		$highestMonsterEntry = 4;
+
 		//Every 5 levels you're up against a new monster
 		$monsterEntry = floor($charLevel / 5);
 
@@ -77,10 +80,11 @@ class GameModel
 
 	public function CalculateCombatResults($attackType, Character $char)
 	{
-		//Get the monsters attack of choice
 		$monster = $this->GetCurrentMonster();
 
 		$monsterAttack = $monster->GetAttackTypeChoice();
+
+		$this->AddTextToLog("Monster used " . $monsterAttack . " attack vs your " . $attackType . " attack");
 
 		//The attacks are of the same type, calculate damage normally.
 		if ($attackType == $monsterAttack)
@@ -132,7 +136,6 @@ class GameModel
 
 		if ($char->GetCurrentHealth() <= 0)
 		{
-			$this->AddTextToLog("You have died! Press end game to create a new character.");
 			return false;
 		}
 
@@ -170,12 +173,26 @@ class GameModel
 		}
 	}
 
+
+	private function CalculateDamage($AttackerDamage, $AttackedDefense)
+	{
+		$defenseEffectiveness = 0.5; //50% effectiveness
+
+		$damage = $AttackerDamage - ($AttackedDefense * $defenseEffectiveness);
+
+		if ($damage < 0)
+				$damage = 0;
+
+		return $damage;
+	}
+
 	public function HandleUserDeath($entry)
 	{
 		//Unset all game sessions.
 		unset($_SESSION[self::$characterStorage]);
 		unset($_SESSION[self::$monsterStorage]);
 		unset($_SESSION[self::$logSession]);
+		$this->AddTextToLog("You have died! Press end game to create a new character.");
 
 		//Remove the character from the DB
 		$this->characterRepository->RemoveCharacterByUserID($entry);
@@ -186,6 +203,7 @@ class GameModel
 		if ($char->GetExp() >= $char->GetLevel() * Character::REQUIRED_EXP_MULTI)
 		{
 			$char->LevelUp();
+			$this->AddTextToLog("Congratulations on reaching level " . $char->GetLevel() . "! You gain 2 stat points!");
 			$this->characterRepository->SaveCharacterToDB($char, $entry);
 		}
 	}
@@ -214,10 +232,11 @@ class GameModel
 			$char->PutPointInDefense();
 			$this->AddTextToLog("You added 1 stat point to defense(+1)!");
 		}
+
+		$this->characterRepository->SaveCharacterToDB($char, $entry);
 	}
 
-	//TODO: I think we should move this to a "shop" class completely, to easier handle everything, we need to move out the text logging too if that's the case
-	public function BuyItem(Character $char, $buyHealthPotion, $buyWeapon)
+	public function BuyItem(Character $char, $entry, $buyHealthPotion, $buyWeapon)
 	{
 		if ($buyHealthPotion)
 		{
@@ -247,11 +266,14 @@ class GameModel
 			{
 				$char->ChangeWeapon($weapon);
 				$char->RemoveGold($weapon->GetPrice());
-				$this->AddTextToLog("Weapon upgraded!");
-
+				$this->AddTextToLog("Weapon upgraded for " . $weapon->GetPrice() . "g!");
+				$this->characterRepository->SaveCharacterToDB($char, $entry);
 			}
 			else
-				$this->AddTextToLog("You don't have enough gold or reached the maximum upgrade (" . WeaponShop::HIGHEST_UPGRADE . ")");
+			{
+				$nextWepPrice = $this->GetNextWeaponPrice($char->GetWeapon()->GetEntry());
+				$this->AddTextToLog("You don't have enough gold (" . $nextWepPrice . "g)!");
+			}
 
 		}
 	}
@@ -312,6 +334,15 @@ class GameModel
 		return NULL;
 	}
 
+	public function GetNextWeaponPrice($entry)
+	{
+		$nextWep = $this->weaponShop->BuyWeapon($entry + 1, 9999999);
+
+		if ($nextWep != NULL)
+			return $nextWep->GetPrice();
+		return 0;
+	}
+
 	public function CheckForExistingCharacter($entry)
 	{
 		if ($this->characterRepository->GetCharacterByUserID($entry))
@@ -321,16 +352,23 @@ class GameModel
 
 	public function CreateCharacter($characterName, $entry)
 	{
+		if ($characterName == "")
+			return "You can not enter a blank name!";
+
 		if (preg_match('/[^A-Za-z0-9-_!åäöÅÄÖ]/', $characterName))
 		{
-			return "Karaktärens namn innehåller ogiltiga tecken!";
+			return "The character name contains invalid characters!";
 		}
 
+		//Create the character and give him the start weapon
 		$char = new Character($characterName, 25, 3, 1, 1, 0, 0, 0, $this->weaponShop->GetWeapon(0));
 
 		$this->characterRepository->AddCharacter($char, $entry);
 
-		$this->AddTextToLog("Character created! Welcome to the game!");
+		//Clear log of any previous messages.. Like character death.
+		unset($_SESSION[self::$logSession]);
+
+		$this->AddTextToLog("Character " . $char->GetName() . " has been created! Welcome to the game!");
 	}
 
 	private function LogAttackInformation($playerWon, $attackerDamage, $monsterName, $attackedCHP = 0, $attackedMaxHP = 0)
@@ -339,17 +377,5 @@ class GameModel
 			$this->AddTextToLog("You deal " . $attackerDamage . " damage to " . $monsterName . "." . " HP is " . $attackedCHP . "/" . $attackedMaxHP);
 		else
 			$this->AddTextToLog("You take " . $attackerDamage . " damage from " . $monsterName . "!");
-	}
-
-	private function CalculateDamage($AttackerDamage, $AttackedDefense)
-	{
-		$defenseEffectiveness = 0.5; //50% effectiveness
-
-		$damage = $AttackerDamage - ($AttackedDefense * $defenseEffectiveness);
-
-		if ($damage < 0)
-				$damage = 0;
-
-		return $damage;
 	}
 }

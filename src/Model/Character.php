@@ -9,7 +9,7 @@ class Character extends Unit
 	private $weapon;
 
 	const HEALTH_PER_STAT    = 5;
-	const REQUIRED_EXP_MULTI = 20;
+	const REQUIRED_EXP_MULTI = 50;
 	const STATS_PER_LEVEL    = 2;
 
 	public function __construct($name, $maxHealth = 25, $attack = 5, $defense = 5, $level = 1, $exp = 0, $gold = 0, $statPoints = 0, $weapon = NULL)
@@ -66,8 +66,8 @@ class Character extends Unit
 
 	public function PutPointInHealth()
 	{
-		$this->maxHealth += 1 * Character::HEALTH_PER_STAT;
-		$this->currentHealth += 1 * Character::HEALTH_PER_STAT;
+		$this->maxHealth += Character::HEALTH_PER_STAT;
+		$this->currentHealth += Character::HEALTH_PER_STAT;
 		$this->statPoints -= 1;
 	}
 

@@ -5,11 +5,11 @@ require_once("model/DAL/WeaponRepository.php");
 class WeaponShop
 {
 	private $weaponRepository;
-	const HIGHEST_UPGRADE = 3;
+	const HIGHEST_UPGRADE = 5;
 
-	public function __construct()
+	public function __construct($weaponRepository)
 	{
-		$this->weaponRepository = new WeaponRepository();
+		$this->weaponRepository = $weaponRepository;
 	}
 	
 	public function GetWeapon($entry)
@@ -26,7 +26,6 @@ class WeaponShop
 
 		if ($weapon->GetPrice() > $gold)
 			return NULL;
-
 		return $weapon;
 	}
 }

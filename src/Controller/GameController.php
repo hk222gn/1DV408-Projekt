@@ -1,7 +1,6 @@
 <?php
 
 require_once("model/GameModel.php");
-//require_once("model/LoginModel.php");
 require_once("view/GameView.php");
 require_once("model/AttackTypes.php");
 require_once("model/HealthPotion.php");
@@ -29,7 +28,8 @@ class GameController
 			if ($this->gameView->DidUserSendCreateCharacter())
 			{
 				$feedback = $this->gameModel->CreateCharacter($this->gameView->GetCharacterNameInput(), $userEntry);
-				//If there is feedback, it means something went wrong when creating the character(Name not allowed?).
+
+				//If there is feedback, it means something went wrong when creating the character.
 				if ($feedback != "")
 				{
 					$this->gameView->SetFeedbackMessage($feedback);
@@ -52,28 +52,31 @@ class GameController
 
 		//Handle shop
 		if ($this->gameView->DidUserRequestBuy())
-			$this->gameModel->BuyItem($char, $this->gameView->DidUserBuyHealthPotion(), $this->gameView->DidUserBuyWeapon());
+			$this->gameModel->BuyItem($char, $userEntry, $this->gameView->DidUserBuyHealthPotion(), $this->gameView->DidUserBuyWeapon());
+
+		$nextWeaponprice = $this->gameModel->GetNextWeaponPrice($char->GetWeapon()->GetEntry());
 
 		//Handle the entire hunting part of the game, includes levels, player death.
 		if ($this->HandleHunting($char, $userEntry))
 		{
 			$this->gameModel->CheckForPlayerLevelup($char, $userEntry);
-
-			return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), 
-				   $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack());
 		}
-		else
-			return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), 
-				   $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack(), true);
+		else//This is run if the player dies.
+		{
+			return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), 
+				   $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack(), $char->GetWeapon()->GetDefense(), 
+				   $nextWeaponprice, $char->GetWeapon()->GetEntry(), true);
+		}
 		
-		return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), 
-			   $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack());
+		return $this->gameView->GenerateGameHTML($this->gameModel->IsUserHunting(), $this->gameModel->GetLogArray(), $char->GetName(), $char->GetMaxHealth(), $char->GetCurrentHealth(), $char->GetAttack(), 
+			   $char->GetDefense(), $char->GetGold(), $char->GetLevel(), $char->GetExp(), $char->GetStatPoints(), $char->GetWeapon()->GetName(), $char->GetWeapon()->GetAttack(), $char->GetWeapon()->GetDefense(), 
+			   $nextWeaponprice, $char->GetWeapon()->GetEntry());
 	}
 
 	private function HandleHunting(Character $char, $entry)
 	{
 
-		if ($this->gameModel->IsUserHunting())
+		if ($this->gameModel->IsUserHunting() && $this->gameView->GetAttackType() != AttackTypes::NONE)
 		{
 			$userDied = $this->gameModel->CalculateCombatResults($this->gameView->GetAttackType(), $char);
 

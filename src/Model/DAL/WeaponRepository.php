@@ -1,6 +1,6 @@
 <?php
 
-require_once("model/weapon.php");
+require_once("model/Weapon.php");
 
 class WeaponRepository extends Repository
 {

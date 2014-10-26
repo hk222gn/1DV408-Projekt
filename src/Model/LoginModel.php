@@ -1,5 +1,4 @@
 <?php
-require_once("model/DAL/UserRepository.php");
 
 class LoginModel
 {
@@ -9,9 +8,9 @@ class LoginModel
 	private $loginStatus = false;
 	private $userRepository;
 
-	public function __construct()
+	public function __construct($userRepository)
 	{
-		$this->userRepository = new UserRepository();
+		$this->userRepository = $userRepository;
 	}
 
 	public function GetLoginStatus()

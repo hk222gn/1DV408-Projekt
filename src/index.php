@@ -1,7 +1,7 @@
 <?php
 
 require_once("RenderHTML.php");
-require_once("controller/MainController.php");
+require_once("Controller/MainController.php");
 
 session_start();
 date_default_timezone_set("Europe/Stockholm");

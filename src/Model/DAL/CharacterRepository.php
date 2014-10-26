@@ -18,10 +18,10 @@ class CharacterRepository extends Repository
 	private static $statPoints = "StatPoints";
 	private static $weapon = "WeaponEntry";
 	
-	public function __construct()
+	public function __construct($weaponRepository)
 	{
 		$this->DBTable = "characters";
-		$this->weaponRepository = new WeaponRepository();
+		$this->weaponRepository = $weaponRepository;
 	}
 
 	public function AddCharacter(Character $char, $userID)
@@ -93,7 +93,7 @@ class CharacterRepository extends Repository
 		}
 		catch (PDOException $e)
 		{
-			die("Error 9 save");
+			die("Error 3 save");
 		}
 	}
 
@@ -112,115 +112,7 @@ class CharacterRepository extends Repository
 		}
 		catch (PDOException $e)
 		{
-			die("Error 7");
-		}
-	}
-
-	public function UpdateHealth($userID, $newHealth)
-	{
-		try
-		{
-			$DB = $this->connection();
-
-			$sql = "UPDATE $this->DBTable SET " . self::$health . "= ? WHERE " . self::$userID . " = ?";
-			$params = array($newHealth, $userID);
-
-			$query = $DB->prepare($sql);
-			$query->execute($params);
-		}
-		catch (PDOException $e)
-		{
-			die("Error 3");
-		}
-	}
-
-	public function UpdateAttack($userID, $newAttack)
-	{
-		try
-		{
-			$DB = $this->connection();
-
-			$sql = "UPDATE $this->DBTable SET " . self::$attack . "= ? WHERE " . self::$userID . " = ?";
-			$params = array($newAttack, $userID);
-
-			$query = $DB->prepare($sql);
-			$query->execute($params);
-		}
-		catch (PDOException $e)
-		{
 			die("Error 4");
-		}
-	}
-
-	public function UpdateDefense($userID, $newDefense)
-	{
-		try
-		{
-			$DB = $this->connection();
-
-			$sql = "UPDATE $this->DBTable SET " . self::$defense . "= ? WHERE " . self::$userID . " = ?";
-			$params = array($newDefense, $userID);
-
-			$query = $DB->prepare($sql);
-			$query->execute($params);
-		}
-		catch (PDOException $e)
-		{
-			die("Error 5");
-		}
-	}
-
-	public function UpdateGold($userID, $newGold)
-	{
-		try
-		{
-			$DB = $this->connection();
-
-			$sql = "UPDATE $this->DBTable SET " . self::$gold . "= ? WHERE " . self::$userID . " = ?";
-			$params = array($newGold, $userID);
-
-			$query = $DB->prepare($sql);
-			$query->execute($params);
-		}
-		catch (PDOException $e)
-		{
-			die("Error 6");
-		}
-	}
-
-	public function UpdateLevel($userID, $newLevel)
-	{
-		try
-		{
-			$DB = $this->connection();
-
-			$sql = "UPDATE $this->DBTable SET " . self::$level . "= ? WHERE " . self::$userID . " = ?";
-			$params = array($newLevel, $userID);
-
-			$query = $DB->prepare($sql);
-			$query->execute($params);
-		}
-		catch (PDOException $e)
-		{
-			die("Error 7");
-		}
-	}
-
-	public function UpdateExp($userID, $newExp)
-	{
-		try
-		{
-			$DB = $this->connection();
-
-			$sql = "UPDATE $this->DBTable SET " . self::$exp . "= ? WHERE " . self::$userID . " = ?";
-			$params = array($newExp, $userID);
-
-			$query = $DB->prepare($sql);
-			$query->execute($params);
-		}
-		catch (PDOException $e)
-		{
-			die("Error 8");
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 require_once("model/RegisterModel.php");
 require_once("view/RegisterView.php");
+require_once("model/DAL/UserRepository.php");
 
 //TODO:
 //The url attribute is still ?register even tho the login page is showing. Can't really fix that with header("Location: ?login"); because it's redirecting so the success message gets removed. @//HERE
@@ -13,11 +14,11 @@ class AccountController
 	private $registerView;
 	private $registerModel;
 
-	public function __construct($model, $view)
+	public function __construct($model, $view, $userRepo)
 	{
 		$this->model = $model;
 		$this->view = $view;
-		$this->registerModel = new RegisterModel();
+		$this->registerModel = new RegisterModel($userRepo);
 		$this->registerView = new RegisterView($this->registerModel);
 	}
 

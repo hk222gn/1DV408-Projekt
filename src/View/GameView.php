@@ -67,7 +67,7 @@ class GameView
 	{
 		if (isset($_GET['attack']))
 			return $_GET['attack'];
-		return "EMPTY";
+		return AttackTypes::NONE;
 	}
 
 	public function GenerateLogString($logArray)
@@ -85,42 +85,53 @@ class GameView
 		return $logString;
 	}
 	
-	public function GenerateGameHTML($isUserHunting = false, $logArray, $name, $maxHealth, $currentHealth, $attack, $defense, $gold, $level, $exp, $statPoints, $weaponName, $weaponDamage, $playerDied = false)
+	public function GenerateGameHTML($isUserHunting = false, $logArray, $name, $maxHealth, $currentHealth, $attack, $defense, $gold, $level, $exp, $statPoints, $weaponName, $weaponDamage, $weaponDefense, $nextWepPrice, $weaponUpgrade, $playerDied = false)
 	{
 		$log = $this->GenerateLogString($logArray);
 
-		$HTML = "
-				<div id = 'feedbackBox'>
-					$log
-				</div>
-				<div id = 'playerStatsAndShop'>
-					<h4>Character information.</h4>
-					<p>Name: $name</p>
-					<p>Level: $level ($statPoints) stat pts</p>
-					<p>Experience: $exp/" . $level * Character::REQUIRED_EXP_MULTI . "</p>
-					<p><a href = '?addStat=health'> + </a>Health: $currentHealth/$maxHealth</p>
-					<p><a href = '?addStat=attack'> + </a>Attack: $attack</p>
-					<p><a href = '?addStat=defense'> + </a>Defense: $defense</p>
-					<br />
-					<h4>Shop.</h4>
-					<p>Current gold: $gold</p>
-					<p>Weapon: $weaponName (+$weaponDamage attack), <a href='?buy=weapon'> Upgrade!</a></p>
-					<p><a href='?buy=healthPotion'>Buy potion</a> 5g (+ " . HealthPotion::HEAL_AMOUNT . " health instantly) </p>
-				</div>
-				<div id = 'actionBox'>
-					<h4>Actions</h4>
-				";
-
-		if ($isUserHunting)
-			$HTML .= $this->GetHuntingHTML();
-		else if ($playerDied)
-			$HTML .= "<p><a href = '?endGame'>End game</a></p>";
+		$weaponPriceHTML;
+		if ($nextWepPrice != 0)
+			$weaponPriceHTML = "<a href='?buy=weapon' class = 'btn btn-default btn-xs margintop'> Upgrade (" . $nextWepPrice . "g)!</a>";
 		else
-			$HTML .= $this->GetActionHTML();
-		$HTML .=
-				"
-				</div>
-				";
+			$weaponPriceHTML ="Max upgrade!";
+
+		$HTML = "
+				<div class = 'row'>
+					<div class = 'col-xs-6 col-sm-7'>
+						<div class = 'log'>
+							$log
+						</div>
+						<div class ='first'>
+							<h4>Actions</h4>
+							";
+
+					if ($isUserHunting)
+						$HTML .= $this->GetHuntingHTML();
+					else if ($playerDied)
+						$HTML .= "<p><a href = '?endGame' class = 'btn btn-success btn-xs margin'>End game</a></p>";
+					else
+						$HTML .= $this->GetActionHTML();
+					$HTML .=
+							"
+						</div>
+					</div>
+				
+					<div class = 'col-xs-6 col-sm-5 second'>
+						<h4>Character information.</h4>
+						<p>Name: $name</p>
+						<p>Level: $level ($statPoints) stat pts</p>
+						<p>Experience: $exp/" . $level * Character::REQUIRED_EXP_MULTI . "</p>
+						<p><h4><a href = '?addStat=health' class = 'btn btn-default btn-xs margintop'> + </a><span class='label label-info marginleft'>Health: $currentHealth/$maxHealth</span></h4></p>
+						<p><h4><a href = '?addStat=attack' class = 'btn btn-default btn-xs margintop'> + </a><span class='label label-info marginleft'>Attack: $attack</span></h4></p>
+						<p><h4><a href = '?addStat=defense' class = 'btn btn-default btn-xs margintop'> + </a><span class='label label-info marginleft'>Defense: $defense</span></h4></p>
+						<br />
+						<h4>Shop.</h4>
+						<p>Current gold: $gold</p>
+						<p>Weapon: $weaponName (+$weaponDamage attack +$weaponDefense defense), $weaponPriceHTML</a></p>
+						<p><a href='?buy=healthPotion' class = 'btn btn-default btn-xs margintop'>Buy potion </a>" . HealthPotion::HEALTH_POTION_PRICE . "g (+" . HealthPotion::HEAL_AMOUNT . " health instantly) </p>
+					</div>
+				</div>";
+
 
 		return $HTML;
 	}
@@ -128,24 +139,22 @@ class GameView
 	public function GetHuntingHTML()
 	{
 		$HTML = "
-				<p><a href = '?attack=" . AttackTypes::QUICK  . "'>" . AttackTypes::QUICK  . " attack</a></p>
-				<p><a href = '?attack=" . AttackTypes::NORMAL . "'>" . AttackTypes::NORMAL . " attack</a></p>
-				<p><a href = '?attack=" . AttackTypes::HEAVY  . "'>" . AttackTypes::HEAVY  . " attack</a></p>
+				<p><a href = '?attack=" . AttackTypes::QUICK  . "' class = 'btn btn-success btn-xs margin'>" . AttackTypes::QUICK  . " attack</a></p>
+				<p><a href = '?attack=" . AttackTypes::NORMAL . "' class = 'btn btn-warning btn-xs margin'>" . AttackTypes::NORMAL . " attack</a></p>
+				<p><a href = '?attack=" . AttackTypes::HEAVY  . "' class = 'btn btn-danger btn-xs margin'>" . AttackTypes::HEAVY  . " attack</a></p>
 				";
 
 		return $HTML;
 	}
 
-	//If get works the way i made it look above (attack=quick means Get returns quick) change that here aswell.
 	public function GetActionHTML()
 	{
 		$HTML =	"
-				<p><a href = '?hunt'>Hunt in the area</a></p>
+				<p><a href = '?hunt' class = 'btn btn-primary btn-sm margin'>Start Hunting!</a></p>
 				";
 		return $HTML;
 	}
 
-	// Borde kanske brytas ut till en egen vy..
 	public function GenerateCharacterCreationHTML()
 	{
 		$characterInput = $this->GetCharacterNameInput();

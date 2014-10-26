@@ -9,9 +9,9 @@ class RegisterModel
 	private $didRegistrationSucceed = false;
 	private $userRepository;
 
-	public function __construct()
+	public function __construct($userRepo)
 	{
-		$this->userRepository = new UserRepository();
+		$this->userRepository = $userRepo;
 	}
 
 	public function RegisterUser($username, $password, $passwordCheck)
